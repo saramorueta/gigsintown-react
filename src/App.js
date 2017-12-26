@@ -57,6 +57,28 @@ class Gig extends Component {
     })
   }
 
+  playersDiv = function() {
+    var hasSpotifyPlayers = this.props.artists
+      .find(function(artist) { return artist.spotifyId })
+    
+    if (hasSpotifyPlayers) {
+      if (this.state.displayPlayers) {
+        return this.props.artists
+          .filter(function(artist) { return artist.spotifyId; })
+          .map(function(artist) {
+            return (
+              <SpotifyPlayer artistId={artist.spotifyId} />
+            )
+          })
+      }
+      else {
+        return (
+          <span className="btn btn-success" onClick={this.displayPlayers}>Listen on Spotify</span>
+        )
+      }
+    }
+  }
+
   render() {
     var gig = this.props.gig
 
@@ -74,18 +96,6 @@ class Gig extends Component {
       .map(function(artist) { return (
         <img src={artist.imageUrl} alt={artist.name} className="img-circle"/>
       )})
-
-    var spotifyPlayers = this.props.artists
-      .filter(function(artist) { return artist.spotifyId; })
-      .map(function(artist) {
-        return (
-          <SpotifyPlayer artistId={artist.spotifyId} />
-        )
-      })
-    
-    var spotifyPlayersLink = (spotifyPlayers.length > 0)
-        ? <span className="btn btn-success" onClick={this.displayPlayers}>Listen on Spotify</span>
-        : null
 
     var venueAddress = this.props.venue.coordinates
       ? <Place 
@@ -105,7 +115,7 @@ class Gig extends Component {
           <h4>{this.props.venue.name}</h4>
           {venueAddress}
         </address>
-        <div className="players">{this.state.displayPlayers ? spotifyPlayers : spotifyPlayersLink}</div>
+        <div className="players">{this.playersDiv()}</div>
         <div className="external-link"><a target="blank" href={this.props.uri}>Find out more</a></div>
       </div>
     )
