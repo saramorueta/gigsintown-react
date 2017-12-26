@@ -1,28 +1,22 @@
-.App {
-  text-align: center;
+.gig {
+  background-color: #FEE;
+  padding: 10px 20px 20px 20px;
+  margin: 10px;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.gig .artists-images img {
+  float: right;
+  margin-left: -30px;
+  border: 5px solid #FEE;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+.gig .venue {
+  clear: both;
 }
 
-.App-title {
-  font-size: 1.5em;
-}
-
-.App-intro {
-  font-size: large;
-}
-
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.gig .external-link {
+  border-top: 1px solid #CCC;
+  padding-top: 10px;
+  margin-top: 15px;
+  text-align: right;
 }
