@@ -23,20 +23,12 @@ class SpotifyPlayer extends Component {
   render() {
     return (
       <div className="player">
-        <iframe src={this.iframeUrl} width="300" height="80" frameborder="0" allowtransparency="true" />
+        <iframe src={this.iframeUrl} 
+          width="300"
+          height="80"
+          frameborder="0"
+          allowtransparency="true" />
       </div>
-    )
-  }
-}
-
-
-class Place extends Component {
-  render() {
-    var url = "https://www.google.com/maps/place/" + encodeURIComponent(this.props.name) +
-      "/@" + this.props.lat + "," + this.props.lng
-    
-    return (
-      <a href={url} target="blank">{this.props.address}</a>
     )
   }
 }
@@ -51,24 +43,40 @@ class Gig extends Component {
     this.displayPlayers = this.displayPlayers.bind(this)
   }
 
-  displayPlayers = function() {
+  renderVenue() {
+    const googleMapsUrl = function(venue) {
+      return "https://www.google.com/maps/place/" + encodeURIComponent(venue.name) +
+        "/@" + venue.coordinates.lat + "," + venue.coordinates.lng
+    }
+
+    const venueAddress = this.props.venue.address && this.props.venue.coordinates
+      ? <a href={googleMapsUrl(this.props.venue)} target="blank">{this.props.venue.address}</a>
+      : null
+
+    return (
+      <address className="venue">
+        <h4>{this.props.venue.name}</h4>
+        {venueAddress}
+      </address>
+    )
+  }
+
+  displayPlayers() {
     this.setState({
       displayPlayers: true
     })
   }
 
-  playersDiv = function() {
-    var hasSpotifyPlayers = this.props.artists
+  renderPlayers() {
+    const hasPlayers = this.props.artists
       .find(function(artist) { return artist.spotifyId })
     
-    if (hasSpotifyPlayers) {
+    if (hasPlayers) {
       if (this.state.displayPlayers) {
         return this.props.artists
-          .filter(function(artist) { return artist.spotifyId; })
+          .filter(function(artist) { return artist.spotifyId })
           .map(function(artist) {
-            return (
-              <SpotifyPlayer artistId={artist.spotifyId} />
-            )
+            return (<SpotifyPlayer artistId={artist.spotifyId} />)
           })
       }
       else {
@@ -80,30 +88,20 @@ class Gig extends Component {
   }
 
   render() {
-    var gig = this.props.gig
-
-    var artists = this.props.artists
+    const artists = this.props.artists
       .map(function(artist) { return artist.name })
       .join(", ")
 
-    var tags = this.props.tags
+    const tags = this.props.tags
       .map(function(tag) { return ([
         <span className="label label-primary">{tag}</span>, " "
       ])})
 
-    var images = this.props.artists
+    const images = this.props.artists
       .filter(function(artist) { return artist.imageUrl; })
       .map(function(artist) { return (
         <img src={artist.imageUrl} alt={artist.name} className="img-circle"/>
       )})
-
-    var venueAddress = this.props.venue.coordinates
-      ? <Place 
-        name={this.props.venue.name} 
-        lat={this.props.venue.coordinates.lat}
-        lng={this.props.venue.coordinates.lng}
-        address={this.props.venue.address} />
-      : null
 
     return (
       <div className="gig">
@@ -111,11 +109,8 @@ class Gig extends Component {
           <div className="artists-names">{artists}</div>
         </h3>
         <div className="tags">{tags}</div>
-        <address className="venue">
-          <h4>{this.props.venue.name}</h4>
-          {venueAddress}
-        </address>
-        <div className="players">{this.playersDiv()}</div>
+        {this.renderVenue()}
+        <div className="players">{this.renderPlayers()}</div>
         <div className="external-link"><a target="blank" href={this.props.uri}>Find out more</a></div>
       </div>
     )
@@ -136,7 +131,7 @@ class App extends Component {
   }
 
   render() {
-    var gigs = this.state.apiResponse.gigs.map(function(gig) {
+    const gigs = this.state.apiResponse.gigs.map(function(gig) {
       return ( <Gig 
         artists={gig.artists} 
         venue={gig.venue}
