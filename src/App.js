@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import moment from 'moment';
 import './App.css';
 
 function fetchJson(url) {
@@ -87,6 +88,30 @@ class Gig extends Component {
     }
   }
 
+  renderDate() {
+    const date = moment(this.props.date, "YYYY-MM-DD")
+    const diff = date.diff(moment.utc().startOf("day"))
+
+    const oneDay = 86400000
+    const oneWeek = oneDay * 7
+
+    if (diff == -oneDay) {
+      return "Yesterday"
+    }
+    else if (diff == 0) {
+      return "Today"
+    }
+    else if (diff == oneDay) {
+      return "Tomorrow"
+    }
+    else if (diff > oneDay && diff < oneWeek) {
+      return date.format("dddd")
+    }
+    else {
+      return date.format("DD/MM/YYYY")
+    }
+  }
+
   render() {
     const artists = this.props.artists
       .map(function(artist) { return artist.name })
@@ -105,6 +130,7 @@ class Gig extends Component {
 
     return (
       <div className="gig">
+        {this.renderDate()}
         <h3>
           <div className="artists-names">{artists}</div>
         </h3>
@@ -124,7 +150,7 @@ class App extends Component {
     this.state = {
       apiResponse: {"gigs": []}
     }
-    fetchJson(gigsApiUrl("london", "2017-12-26"))
+    fetchJson(gigsApiUrl("london", "2017-12-30"))
       .then((apiResponse) => this.setState({
         "apiResponse": apiResponse
       }))
@@ -136,7 +162,8 @@ class App extends Component {
         artists={gig.artists} 
         venue={gig.venue}
         uri={gig.uri}
-        tags={gig.tags} /> )
+        tags={gig.tags}
+        date={gig.date} /> )
     })
 
     return (
