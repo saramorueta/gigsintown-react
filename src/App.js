@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import moment from 'moment';
+import InfiniteScroll from 'react-infinite-scroll-component'
 import './App.css';
 
 function fetchJson(url) {
@@ -148,26 +149,52 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      apiResponse: {"gigs": []}
+      rendered: []
     }
-    fetchJson(gigsApiUrl("london", "2017-12-30"))
-      .then((apiResponse) => this.setState({
-        "apiResponse": apiResponse
-      }))
+    this.refresh = this.refresh.bind(this)
+    this.fetchNext = this.fetchNext.bind(this)
+    this.updateResults = this.updateResults.bind(this)
+    this.refresh()
+  }
+
+  updateResults(apiResponse) {
+    this.setState({
+      apiResponse: apiResponse,
+      rendered: this.state.rendered.concat(apiResponse.gigs.map(
+        function(gig) {
+          return ( <Gig 
+            artists={gig.artists} 
+            venue={gig.venue}
+            uri={gig.uri}
+            tags={gig.tags}
+            date={gig.date} /> )
+        }
+      ))
+    })
+  }
+
+  refresh() {
+    fetchJson(gigsApiUrl("london", moment.utc().format("YYYY-MM-DD"), null, "rock"))
+      .then(this.updateResults)
+  }
+
+  fetchNext() {
+    fetchJson(this.state.apiResponse.nextPage)
+      .then(this.updateResults)
   }
 
   render() {
-    const gigs = this.state.apiResponse.gigs.map(function(gig) {
-      return ( <Gig 
-        artists={gig.artists} 
-        venue={gig.venue}
-        uri={gig.uri}
-        tags={gig.tags}
-        date={gig.date} /> )
-    })
-
     return (
-      <div id="gigs">{gigs}</div>
+      <div id="gig-listing" className="col-12 col-sm-12 col-md-8 col-lg-6">
+        <InfiniteScroll
+          next={this.fetchNext}
+          hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
+          refresh={this.ref}
+          loader={<div class="infinite-scroll">Finding gigs...</div>}
+          endMessage={<div className="infinite-scroll">That's all for now...</div>}>
+          {this.state.rendered}
+        </InfiniteScroll>
+      </div>
     )
   }
 }

@@ -1,7 +1,11 @@
-.gig {
+.gig, .infinite-scroll {
   background-color: #FEE;
   padding: 10px 20px 20px 20px;
   margin: 10px;
+}
+
+.infinite-scroll {
+  text-align: center;
 }
 
 .gig .artists-images img {
