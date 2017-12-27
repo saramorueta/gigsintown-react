@@ -17,19 +17,17 @@ function gigsApiUrl(location, startDate, query, tags) {
 
 
 class SpotifyPlayer extends Component {
-  constructor(props) {
-    super(props)
-    this.iframeUrl = "https://open.spotify.com/embed?uri=spotify:artist:" + encodeURIComponent(props.artistId) + "&theme=white"
-  }
-
   render() {
+    const iframeUrl = "https://open.spotify.com/embed?uri=spotify:artist:" + encodeURIComponent(this.props.artistId) + "&theme=white"
+    const iframeTitle = "Spotify player for " + this.props.artistName
     return (
       <div className="player">
-        <iframe src={this.iframeUrl} 
+        <iframe src={iframeUrl} 
           width="300"
           height="80"
           frameborder="0"
-          allowtransparency="true" />
+          allowtransparency="true"
+          title={iframeTitle} />
       </div>
     )
   }
@@ -78,7 +76,7 @@ class Gig extends Component {
         return this.props.artists
           .filter(function(artist) { return artist.spotifyId })
           .map(function(artist) {
-            return (<SpotifyPlayer artistId={artist.spotifyId} />)
+            return (<SpotifyPlayer artistId={artist.spotifyId} artistName={artist.name} />)
           })
       }
       else {
@@ -96,13 +94,13 @@ class Gig extends Component {
     const oneDay = 86400000
     const oneWeek = oneDay * 7
 
-    if (diff == -oneDay) {
+    if (diff === -oneDay) {
       return "Yesterday"
     }
-    else if (diff == 0) {
+    else if (diff === 0) {
       return "Today"
     }
-    else if (diff == oneDay) {
+    else if (diff === oneDay) {
       return "Tomorrow"
     }
     else if (diff > oneDay && diff < oneWeek) {
@@ -120,14 +118,14 @@ class Gig extends Component {
 
     const tags = this.props.tags
       .map(function(tag) { return ([
-        <span className="label label-primary">{tag}</span>, " "
+        <span className="label label-primary" key={tag}>{tag}</span>, " "
       ])})
 
-    const images = this.props.artists
-      .filter(function(artist) { return artist.imageUrl; })
-      .map(function(artist) { return (
-        <img src={artist.imageUrl} alt={artist.name} className="img-circle"/>
-      )})
+    // const images = this.props.artists
+    //   .filter(function(artist) { return artist.imageUrl; })
+    //   .map(function(artist) { return (
+    //     <img src={artist.imageUrl} alt={artist.name} className="img-circle"/>
+    //   )})
 
     return (
       <div className="gig">
@@ -149,7 +147,7 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      rendered: []
+      gigs: []
     }
     this.refresh = this.refresh.bind(this)
     this.fetchNext = this.fetchNext.bind(this)
@@ -160,14 +158,15 @@ class App extends Component {
   updateResults(apiResponse) {
     this.setState({
       apiResponse: apiResponse,
-      rendered: this.state.rendered.concat(apiResponse.gigs.map(
+      gigs: this.state.gigs.concat(apiResponse.gigs.map(
         function(gig) {
           return ( <Gig 
             artists={gig.artists} 
             venue={gig.venue}
             uri={gig.uri}
             tags={gig.tags}
-            date={gig.date} /> )
+            date={gig.date}
+            key={gig.uri} /> )
         }
       ))
     })
@@ -185,15 +184,17 @@ class App extends Component {
 
   render() {
     return (
-      <div id="gig-listing" className="col-12 col-sm-12 col-md-8 col-lg-6">
-        <InfiniteScroll
-          next={this.fetchNext}
-          hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
-          refresh={this.ref}
-          loader={<div class="infinite-scroll">Finding gigs...</div>}
-          endMessage={<div className="infinite-scroll">That's all for now...</div>}>
-          {this.state.rendered}
-        </InfiniteScroll>
+      <div id="main">
+        <div id="gig-listing" className="col-12 col-sm-8 col-md-8 col-lg-6">
+          <InfiniteScroll
+            next={this.fetchNext}
+            hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
+            refresh={this.ref}
+            loader={<div className="infinite-scroll">Finding gigs...</div>}
+            endMessage={<div className="infinite-scroll">That's all for now...</div>}>
+            {this.state.gigs}
+          </InfiniteScroll>
+        </div>
       </div>
     )
   }
