@@ -25,7 +25,7 @@ class SpotifyPlayer extends Component {
         <iframe src={iframeUrl} 
           width="300"
           height="80"
-          frameborder="0"
+          frameBorder="0"
           allowtransparency="true"
           title={iframeTitle} />
       </div>
@@ -40,7 +40,6 @@ class Gig extends Component {
     this.state = {
       displayPlayers: false
     }
-    this.displayPlayers = this.displayPlayers.bind(this)
   }
 
   renderVenue() {
@@ -61,13 +60,13 @@ class Gig extends Component {
     )
   }
 
-  displayPlayers() {
-    this.setState({
-      displayPlayers: true
-    })
-  }
-
   renderPlayers() {
+    function displayPlayers() {
+      this.setState({
+        displayPlayers: true
+      })
+    }
+
     const hasPlayers = this.props.artists
       .find(function(artist) { return artist.spotifyId })
     
@@ -76,12 +75,12 @@ class Gig extends Component {
         return this.props.artists
           .filter(function(artist) { return artist.spotifyId })
           .map(function(artist) {
-            return (<SpotifyPlayer artistId={artist.spotifyId} artistName={artist.name} />)
+            return (<SpotifyPlayer key={artist.spotifyId} artistId={artist.spotifyId} artistName={artist.name} />)
           })
       }
       else {
         return (
-          <span className="btn btn-success" onClick={this.displayPlayers}>Listen on Spotify</span>
+          <span className="btn btn-success" onClick={displayPlayers.bind(this)}>Listen on Spotify</span>
         )
       }
     }
@@ -143,61 +142,117 @@ class Gig extends Component {
 }
 
 
-class App extends Component {
+class GigSearch extends Component {
   constructor(props) {
     super(props)
+    this.onSearch = props.onSearch
     this.state = {
-      gigs: []
+      location: "london",
+      startDate: moment.utc().format("YYYY-MM-DD"),
+      query: props.query ? props.query : null,
+      tags: props.tags ? props.tags : []
     }
-    this.refresh = this.refresh.bind(this)
-    this.fetchNext = this.fetchNext.bind(this)
-    this.updateResults = this.updateResults.bind(this)
-    this.refresh()
-  }
-
-  updateResults(apiResponse) {
-    this.setState({
-      apiResponse: apiResponse,
-      gigs: this.state.gigs.concat(apiResponse.gigs.map(
-        function(gig) {
-          return ( <Gig 
-            artists={gig.artists} 
-            venue={gig.venue}
-            uri={gig.uri}
-            tags={gig.tags}
-            date={gig.date}
-            key={gig.uri} /> )
-        }
-      ))
-    })
-  }
-
-  refresh() {
-    fetchJson(gigsApiUrl("london", moment.utc().format("YYYY-MM-DD"), null, "rock"))
-      .then(this.updateResults)
-  }
-
-  fetchNext() {
-    fetchJson(this.state.apiResponse.nextPage)
-      .then(this.updateResults)
   }
 
   render() {
     return (
-      <div id="main">
-        <div id="gig-listing" className="col-12 col-sm-8 col-md-8 col-lg-6">
-          <InfiniteScroll
-            next={this.fetchNext}
-            hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
-            refresh={this.ref}
-            loader={<div className="infinite-scroll">Finding gigs...</div>}
-            endMessage={<div className="infinite-scroll">That's all for now...</div>}>
-            {this.state.gigs}
-          </InfiniteScroll>
+      <div id="filters" className="col-12 col-sm-4 col-lg-2">
+        <div className="sidebar-nav-fixed affix">
+          <input name="query"
+            type="text"
+            className="form-control"
+            placeholder="Search artist or venue"
+            onChange={function(event) {
+              this.setState({query: event.target.value})
+            }.bind(this)}/>
+
+          <button onClick={function(event) {
+            this.onSearch(gigsApiUrl(
+              this.state.location,
+              this.state.startDate,
+              this.state.query,
+              this.state.tags.join(",")
+            ))
+          }.bind(this)} className="btn btn-primary">Refresh results</button>
         </div>
       </div>
     )
   }
 }
+
+
+class GigListing extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      gigs: []
+    }
+    this.fetchNext = this.fetchNext.bind(this)
+    this.appendResults = this.appendResults.bind(this)
+    fetchJson(props.apiUrl)
+      .then(this.appendResults.bind(this))
+  }
+
+  appendResults(apiResponse) {
+    this.setState({
+      apiResponse: apiResponse,
+      gigs: this.state.gigs.concat(apiResponse.gigs.map(
+        function(gig) {
+          return <Gig 
+            artists={gig.artists} 
+            venue={gig.venue}
+            uri={gig.uri}
+            tags={gig.tags}
+            date={gig.date}
+            key={gig.uri} />
+        }
+      ))
+    })
+  }
+
+  fetchNext() {
+    fetchJson(this.state.apiResponse.nextPage)
+      .then(this.appendResults)
+  }
+
+  render() {
+    return (
+      <div id="gig-listing" className="col-12 col-sm-8 col-lg-6">
+        <InfiniteScroll
+          next={this.fetchNext}
+          hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
+          loader={<div className="infinite-scroll">Finding gigs...</div>}
+          endMessage={<div className="infinite-scroll">
+            <p>That's all for now...</p>
+          </div>}>
+          {this.state.gigs}
+        </InfiniteScroll>
+      </div>
+    )
+  }
+}
+
+
+class App extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      apiUrl: null
+    }
+  }
+
+  render() {
+    const onSearch = function(apiUrl) {
+      this.setState({
+        apiUrl: apiUrl
+      })
+    }.bind(this)
+
+    return this.state.apiUrl
+      ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
+      : <GigSearch onSearch={onSearch}/>
+  }
+}
+
 
 export default App;
