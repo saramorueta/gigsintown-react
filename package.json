@@ -1,10 +1,11 @@
 {
-  "name": "gigmein2",
+  "name": "gigmein",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "moment": "^2.20.1",
     "react": "^16.2.0",
+    "react-date-range": "^0.9.4",
     "react-dom": "^16.2.0",
     "react-infinite-scroll-component": "^2.6.0",
     "react-scripts": "1.0.17"

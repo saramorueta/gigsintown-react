@@ -1,18 +1,20 @@
 import React, { Component } from 'react';
-import moment from 'moment';
-import InfiniteScroll from 'react-infinite-scroll-component'
 import './App.css';
+import moment from 'moment';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import {Calendar, DateRange} from 'react-date-range';
 
 function fetchJson(url) {
   return fetch(url).then((resp) => resp.json())
 }
 
-function gigsApiUrl(location, startDate, query, tags) {
+function gigsApiUrl(location, startDate, endDate, query, tags) {
   return "http://localhost:9000/api/gigs?pageSize=20" +
     (location ? "&location=" + encodeURIComponent(location) : "") +
-    (startDate ? "&startDate=" + encodeURIComponent(startDate) : "") +
+    (startDate ? "&startDate=" + startDate.format("YYYY-MM-DD") : "") +
+    (endDate ? "&endDate=" + endDate.format("YYYY-MM-DD") : "") +
     (query ? "&query=" + encodeURIComponent(query) : "") +
-    (tags ? "&tags=" + encodeURIComponent(tags) : "")
+    (tags.length ? "&tags=" + encodeURIComponent(tags.join(",")) : "")
 }
 
 
@@ -61,12 +63,6 @@ class Gig extends Component {
   }
 
   renderPlayers() {
-    function displayPlayers() {
-      this.setState({
-        displayPlayers: true
-      })
-    }
-
     const hasPlayers = this.props.artists
       .find(function(artist) { return artist.spotifyId })
     
@@ -80,7 +76,7 @@ class Gig extends Component {
       }
       else {
         return (
-          <span className="btn btn-success" onClick={displayPlayers.bind(this)}>Listen on Spotify</span>
+          <span className="btn btn-success" onClick={() => this.setState({displayPlayers: true})}>Listen on Spotify</span>
         )
       }
     }
@@ -148,33 +144,57 @@ class GigSearch extends Component {
     this.onSearch = props.onSearch
     this.state = {
       location: "london",
-      startDate: moment.utc().format("YYYY-MM-DD"),
-      query: props.query ? props.query : null,
-      tags: props.tags ? props.tags : []
+      startDate: moment.utc(),
+      endDate: moment.utc().add(1, 'year'),
+      query: null,
+      tags: []
     }
   }
 
   render() {
     return (
-      <div id="filters" className="col-12 col-sm-4 col-lg-2">
-        <div className="sidebar-nav-fixed affix">
-          <input name="query"
+      <div id="filters" className="col-12 col-lg-6">
+          <DateRange
+            minDate={moment.utc()}
+            ranges={{
+              "Today": {
+                startDate: (now) => { return now },
+                endDate: (now) => { return now }
+              },
+              "Tomorrow": {
+                startDate: (now) => { return now.add(1, 'day') },
+                endDate: (now) => { return now.add(1, 'day') }
+              },
+              "This week": {
+                startDate: (now) => { return now },
+                endDate: (now) => { return now.add(1, 'week') }
+              },
+              "This month": {
+                startDate: (now) => { return now },
+                endDate: (now) => { return now.add(1, 'month') }
+              }
+            }}
+            onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
+            theme={{
+              Calendar : { width: 220 },
+              PredefinedRanges : { marginLeft: 10, marginTop: 10 }
+            }}
+          />
+          
+          <input
             type="text"
             className="form-control"
             placeholder="Search artist or venue"
-            onChange={function(event) {
-              this.setState({query: event.target.value})
-            }.bind(this)}/>
+            onChange={(event) => this.setState({query: event.target.value}) }/>
 
-          <button onClick={function(event) {
-            this.onSearch(gigsApiUrl(
+          <button onClick={ (event) => this.onSearch(gigsApiUrl(
               this.state.location,
               this.state.startDate,
+              this.state.endDate,
               this.state.query,
-              this.state.tags.join(",")
+              this.state.tags
             ))
-          }.bind(this)} className="btn btn-primary">Refresh results</button>
-        </div>
+          } className="btn btn-primary">Find gigs!</button>
       </div>
     )
   }
@@ -190,7 +210,7 @@ class GigListing extends Component {
     this.fetchNext = this.fetchNext.bind(this)
     this.appendResults = this.appendResults.bind(this)
     fetchJson(props.apiUrl)
-      .then(this.appendResults.bind(this))
+      .then(this.appendResults)
   }
 
   appendResults(apiResponse) {
@@ -217,7 +237,7 @@ class GigListing extends Component {
 
   render() {
     return (
-      <div id="gig-listing" className="col-12 col-sm-8 col-lg-6">
+      <div id="gig-listing" className="col-12 col-lg-6">
         <InfiniteScroll
           next={this.fetchNext}
           hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
@@ -242,17 +262,16 @@ class App extends Component {
   }
 
   render() {
-    const onSearch = function(apiUrl) {
-      this.setState({
-        apiUrl: apiUrl
-      })
-    }.bind(this)
-
-    return this.state.apiUrl
-      ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
-      : <GigSearch onSearch={onSearch}/>
+    return (
+      <div>
+        <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
+        {this.state.apiUrl ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/> : null}
+      </div>
+    )
+    // return this.state.apiUrl
+    //   ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
+    //   : <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
   }
 }
-
 
 export default App;
