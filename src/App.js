@@ -157,9 +157,10 @@ class GigSearch extends Component {
 
   render() {
     return (
-      <div id="filters" className="col-12 col-md-6">
+      <div id="filters" className="col col-12 col-md-6">
         <div className="form-group">
           <DateRangePicker
+            displayFormat="DD/MM/YYYY"
             startDate={this.state.startDate}
             endDate={this.state.endDate}
             onDatesChange={({ startDate, endDate }) => this.setState({ startDate, endDate })}
@@ -202,8 +203,10 @@ class GigListing extends Component {
     }
     this.fetchNext = this.fetchNext.bind(this)
     this.appendResults = this.appendResults.bind(this)
-    fetchJson(props.apiUrl)
-      .then(this.appendResults)
+    if (props.apiUrl) {
+      fetchJson(props.apiUrl)
+        .then(this.appendResults)
+    }
   }
 
   appendResults(apiResponse) {
@@ -233,11 +236,8 @@ class GigListing extends Component {
       <div id="gig-listing" className="col-12 col-md-6">
         <InfiniteScroll
           next={this.fetchNext}
-          hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
-          loader={<div className="infinite-scroll">Finding gigs...</div>}
-          endMessage={<div className="infinite-scroll">
-            <p>That's all for now...</p>
-          </div>}>
+          hasMore={this.props.apiUrl && (this.state.apiResponse === undefined || this.state.apiResponse.nextPage)}
+          loader={<div className="infinite-scroll">Finding gigs...</div>}>
           {this.state.gigs}
         </InfiniteScroll>
       </div>
@@ -255,15 +255,17 @@ class App extends Component {
   }
 
   render() {
+    const content = this.state.apiUrl
+      ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
+      : <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
+
     return (
-      <div>
-        <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
-        {this.state.apiUrl ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/> : null}
+      <div id="wrap">
+        <main>
+          {content}
+        </main>
       </div>
     )
-    // return this.state.apiUrl
-    //   ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
-    //   : <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
   }
 }
 
