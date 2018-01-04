@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
+
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {Calendar, DateRange} from 'react-date-range';
+import { DateRangePicker } from 'react-dates';
 
 function fetchJson(url) {
   return fetch(url).then((resp) => resp.json())
@@ -145,7 +149,7 @@ class GigSearch extends Component {
     this.state = {
       location: "london",
       startDate: moment.utc(),
-      endDate: moment.utc().add(1, 'year'),
+      endDate: null,
       query: null,
       tags: []
     }
@@ -153,40 +157,28 @@ class GigSearch extends Component {
 
   render() {
     return (
-      <div id="filters" className="col-12 col-lg-6">
-          <DateRange
-            minDate={moment.utc()}
-            ranges={{
-              "Today": {
-                startDate: (now) => { return now },
-                endDate: (now) => { return now }
-              },
-              "Tomorrow": {
-                startDate: (now) => { return now.add(1, 'day') },
-                endDate: (now) => { return now.add(1, 'day') }
-              },
-              "This week": {
-                startDate: (now) => { return now },
-                endDate: (now) => { return now.add(1, 'week') }
-              },
-              "This month": {
-                startDate: (now) => { return now },
-                endDate: (now) => { return now.add(1, 'month') }
-              }
-            }}
-            onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
-            theme={{
-              Calendar : { width: 220 },
-              PredefinedRanges : { marginLeft: 10, marginTop: 10 }
-            }}
+      <div id="filters" className="col-12 col-md-6">
+        <div className="form-group">
+          <DateRangePicker
+            startDate={this.state.startDate}
+            endDate={this.state.endDate}
+            onDatesChange={({ startDate, endDate }) => this.setState({ startDate, endDate })}
+            focusedInput={this.state.focusedInput}
+            onFocusChange={focusedInput => this.setState({ focusedInput })}
+            renderCalendarInfo={false}
+            hideKeyboardShortcutsPanel={true}
           />
-          
+        </div>
+
+        <div className="form-group">
           <input
             type="text"
             className="form-control"
             placeholder="Search artist or venue"
             onChange={(event) => this.setState({query: event.target.value}) }/>
+        </div>
 
+        <div className="form-group">
           <button onClick={ (event) => this.onSearch(gigsApiUrl(
               this.state.location,
               this.state.startDate,
@@ -194,7 +186,8 @@ class GigSearch extends Component {
               this.state.query,
               this.state.tags
             ))
-          } className="btn btn-primary">Find gigs!</button>
+          } id="submit-search" className="btn btn-primary">Find gigs!</button>
+        </div>
       </div>
     )
   }
@@ -237,7 +230,7 @@ class GigListing extends Component {
 
   render() {
     return (
-      <div id="gig-listing" className="col-12 col-lg-6">
+      <div id="gig-listing" className="col-12 col-md-6">
         <InfiniteScroll
           next={this.fetchNext}
           hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
