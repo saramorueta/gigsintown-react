@@ -33,7 +33,11 @@ html, body {
   text-align: right;
 }
 
-#filters button#submit-search {
+#filters .submit button {
   padding: 20px;
   width: 100%;
+}
+
+#filters .calendars {
+  text-align: center;
 }

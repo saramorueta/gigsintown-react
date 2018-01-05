@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import './App.css';
 
-import 'react-dates/initialize';
-import 'react-dates/lib/css/_datepicker.css';
-
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { DateRangePicker } from 'react-dates';
+import {Calendar, DateRange} from 'react-date-range';
 
 function fetchJson(url) {
   return fetch(url).then((resp) => resp.json())
@@ -149,7 +146,7 @@ class GigSearch extends Component {
     this.state = {
       location: "london",
       startDate: moment.utc(),
-      endDate: null,
+      endDate: moment.utc().add(1, 'week'),
       query: null,
       tags: []
     }
@@ -157,21 +154,59 @@ class GigSearch extends Component {
 
   render() {
     return (
-      <div id="filters" className="col col-12 col-md-6">
-        <div className="form-group">
-          <DateRangePicker
-            displayFormat="DD/MM/YYYY"
-            startDate={this.state.startDate}
-            endDate={this.state.endDate}
-            onDatesChange={({ startDate, endDate }) => this.setState({ startDate, endDate })}
-            focusedInput={this.state.focusedInput}
-            onFocusChange={focusedInput => this.setState({ focusedInput })}
-            renderCalendarInfo={false}
-            hideKeyboardShortcutsPanel={true}
+      <div id="filters" className="col col-12 col-md-8 col-lg-6">
+        <div className="form-group calendars visible-xs">
+          <Calendar
+            date={this.state.startDate}
+            minDate={moment.utc()}
+            onChange={ (date) => this.setState({startDate: date}) }
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group calendars visible-sm">
+          <DateRange
+            minDate={moment.utc()}
+            startDate={this.state.startDate}
+            endDate={this.state.endDate}
+            linkedCalendars={true}
+            onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
+          />
+        </div>
+
+        <div className="form-group calendars hidden-xs hidden-sm">
+          <DateRange
+            minDate={moment.utc()}
+            startDate={this.state.startDate}
+            endDate={this.state.endDate}
+            linkedCalendars={true}
+            ranges={{
+              "Today": {
+                startDate: (now) => { return now },
+                endDate: (now) => { return now }
+              },
+              "Tomorrow": {
+                startDate: (now) => { return now.add(1, 'day') },
+                endDate: (now) => { return now.add(1, 'day') }
+              },
+              "This week": {
+                startDate: (now) => { return now },
+                endDate: (now) => { return now.add(1, 'week') }
+              },
+              "This month": {
+                startDate: (now) => { return now },
+                endDate: (now) => { return now.add(1, 'month') }
+              }
+            }}
+            onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
+            theme={{
+              Calendar : { width: 210 },
+              PredefinedRanges : { marginLeft: 10, marginTop: 10 }
+            }}
+          />
+        </div>
+
+
+        <div className="form-group query">
           <input
             type="text"
             className="form-control"
@@ -179,7 +214,7 @@ class GigSearch extends Component {
             onChange={(event) => this.setState({query: event.target.value}) }/>
         </div>
 
-        <div className="form-group">
+        <div className="form-group submit">
           <button onClick={ (event) => this.onSearch(gigsApiUrl(
               this.state.location,
               this.state.startDate,
