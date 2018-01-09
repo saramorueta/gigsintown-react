@@ -239,6 +239,7 @@ class GigListing extends Component {
     this.state = {
       gigs: []
     }
+    this.onSearch = this.props.onSearch
     this.fetchNext = this.fetchNext.bind(this)
     this.appendResults = this.appendResults.bind(this)
     if (props.apiUrl) {
@@ -278,6 +279,7 @@ class GigListing extends Component {
   render() {
     return (
       <div id="gig-listing">
+        <button className="btn btn-default back-to-search" onClick={this.onSearch}>Back to search</button>
         <InfiniteScroll
           next={this.fetchNext}
           hasMore={this.props.apiUrl && (this.state.apiResponse === undefined || this.state.apiResponse.nextPage)}
@@ -301,7 +303,7 @@ class App extends Component {
 
   render() {
     const content = this.state.apiUrl
-      ? <GigListing key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
+      ? <GigListing onSearch={() => this.setState({apiUrl: null})} key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
       : <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
 
     return (

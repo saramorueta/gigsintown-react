@@ -6,6 +6,13 @@ html, body {
   padding-top: 10px;
 }
 
+#gig-listing .back-to-search {
+  position: sticky;
+  width: 100%;
+  top: 0px;
+  margin-bottom: 5px;
+}
+
 .gig, .infinite-scroll {
   background-color: #FEE;
   padding: 10px 20px 20px 20px;
