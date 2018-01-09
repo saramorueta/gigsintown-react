@@ -146,15 +146,19 @@ class GigSearch extends Component {
     this.state = {
       location: "london",
       startDate: moment.utc(),
-      endDate: moment.utc().add(1, 'week'),
+      endDate: null,
       query: null,
       tags: []
     }
   }
 
   render() {
+    const endDateForRanges = this.state.endDate
+      ? this.state.endDate
+      : this.state.startDate.clone().add(1, "week")
+
     return (
-      <div id="filters" className="col col-12 col-md-8 col-lg-6">
+      <div id="filters">
         <div className="form-group calendars visible-xs">
           <Calendar
             date={this.state.startDate}
@@ -167,7 +171,7 @@ class GigSearch extends Component {
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
-            endDate={this.state.endDate}
+            endDate={endDateForRanges}
             linkedCalendars={true}
             onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
           />
@@ -177,7 +181,7 @@ class GigSearch extends Component {
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
-            endDate={this.state.endDate}
+            endDate={endDateForRanges}
             linkedCalendars={true}
             ranges={{
               "Today": {
@@ -268,11 +272,12 @@ class GigListing extends Component {
 
   render() {
     return (
-      <div id="gig-listing" className="col-12 col-md-6">
+      <div id="gig-listing">
         <InfiniteScroll
           next={this.fetchNext}
           hasMore={this.props.apiUrl && (this.state.apiResponse === undefined || this.state.apiResponse.nextPage)}
-          loader={<div className="infinite-scroll">Finding gigs...</div>}>
+          loader={<div className="infinite-scroll">Finding gigs...</div>}
+          endMessage={<div className="infinite-scroll">That's all, refine your search to find more gigs</div>}>
           {this.state.gigs}
         </InfiniteScroll>
       </div>
@@ -295,8 +300,8 @@ class App extends Component {
       : <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
 
     return (
-      <div id="wrap">
-        <main>
+      <div>
+        <main className="col col-12 col-md-8 col-lg-6">
           {content}
         </main>
       </div>
