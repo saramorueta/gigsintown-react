@@ -209,7 +209,6 @@ class GigSearch extends Component {
           />
         </div>
 
-
         <div className="form-group query">
           <input
             type="text"
@@ -266,8 +265,14 @@ class GigListing extends Component {
   }
 
   fetchNext() {
-    fetchJson(this.state.apiResponse.nextPage)
-      .then(this.appendResults)
+    if (!this.state.loading) {
+      this.setState({ loading: true })
+      fetchJson(this.state.apiResponse.nextPage)
+        .then(this.appendResults)
+        .then(() => {
+          this.setState({ loading: false })
+        })
+    }
   }
 
   render() {
