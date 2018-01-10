@@ -167,7 +167,7 @@ class GigSearch extends Component {
           />
         </div>
 
-        <div className="form-group calendars visible-sm">
+        <div className="form-group calendars visible-sm visible-md">
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
@@ -177,7 +177,7 @@ class GigSearch extends Component {
           />
         </div>
 
-        <div className="form-group calendars hidden-xs hidden-sm">
+        <div className="form-group calendars hidden-xs hidden-sm hidden-md">
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
@@ -203,7 +203,6 @@ class GigSearch extends Component {
             }}
             onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
             theme={{
-              Calendar : { width: 210 },
               PredefinedRanges : { marginLeft: 10, marginTop: 10 }
             }}
           />
@@ -279,7 +278,9 @@ class GigListing extends Component {
   render() {
     return (
       <div id="gig-listing">
-        <button className="btn btn-default back-to-search" onClick={this.onSearch}>Back to search</button>
+        <button className="btn btn-dark back-to-search" onClick={this.onSearch}>
+          Back to search
+        </button>
         <InfiniteScroll
           next={this.fetchNext}
           hasMore={this.props.apiUrl && (this.state.apiResponse === undefined || this.state.apiResponse.nextPage)}
@@ -304,13 +305,18 @@ class App extends Component {
   render() {
     const content = this.state.apiUrl
       ? <GigListing onSearch={() => this.setState({apiUrl: null})} key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
-      : <GigSearch onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
+      : <GigSearch key="search" onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
 
     return (
-      <div>
-        <main className="col col-12 col-md-8 col-lg-6">
-          {content}
-        </main>
+      <div className="container">
+        <div className="row">
+          <nav className="col col-md-4 hidden-sm hidden-xs">
+
+          </nav>
+          <main className="col col-12 col-md-8">
+            {content}
+          </main>
+        </div>
       </div>
     )
   }
