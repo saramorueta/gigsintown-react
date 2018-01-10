@@ -10,7 +10,7 @@ function fetchJson(url) {
 }
 
 function gigsApiUrl(location, startDate, endDate, query, tags) {
-  return "http://localhost:9000/api/gigs?pageSize=20" +
+  return "https://gigsintown.herokuapp.com/api/gigs?pageSize=20" +
     (location ? "&location=" + encodeURIComponent(location) : "") +
     (startDate ? "&startDate=" + startDate.format("YYYY-MM-DD") : "") +
     (endDate ? "&endDate=" + endDate.format("YYYY-MM-DD") : "") +
