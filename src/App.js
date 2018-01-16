@@ -5,6 +5,115 @@ import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
 
+Array.prototype.add = function(element) {
+  return this.indexOf(element) === -1
+    ? [].concat(this, [element])
+    : this
+};
+
+const allTags = {
+  "2-step"           : "2-step",
+  "acappella"        : "Acappella",
+  "acid house"       : "Acid house",
+  "acid jazz"        : "Acid jazz",
+  "acid rock"        : "Acid rock",
+  "acid techno"      : "Acid techno",
+  "acoustic"         : "Acoustic",
+  "afrobeat"         : "Afrobeat",
+  "alternative"      : "Alternative",
+  "ambient"          : "Ambient",
+  "americana"        : "Americana",
+  "anti-folk"        : "Anti-folk",
+  "art rock"         : "Art rock",
+  "avant-garde"      : "Avant-garde",
+  "big beat"         : "Big beat",
+  "black metal"      : "Black metal",
+  "bluegrass"        : "Bluegrass",
+  "blues"            : "Blues",
+  "bossa nova"       : "Bossa Nova",
+  "britpop"          : "Britpop",
+  "chill-out"        : "Chill-out",
+  "country"          : "Country",
+  "dance"            : "Dance",
+  "dancehall"        : "Dancehall",
+  "dark-wave"        : "Dark-wave",
+  "death metal"      : "Death metal",
+  "deep house"       : "Deep house",
+  "disco"            : "Disco",
+  "doom"             : "Doom",
+  "downtempo"        : "Downtempo",
+  "dream pop"        : "Dream pop",
+  "drum and bass"    : "Drum and bass",
+  "dub"              : "Dub",
+  "dubstep"          : "Dubstep",
+  "electronic"       : "Electronic",
+  "experimental"     : "Experimental",
+  "flamenco"         : "Flamenco",
+  "folk"             : "Folk",
+  "funk"             : "Funk",
+  "fusion"           : "Fusion",
+  "garage"           : "Garage",
+  "glam"             : "Glam",
+  "glitch"           : "Glitch",
+  "goa trance"       : "Goa trance",
+  "gospel"           : "Gospel",
+  "gothic"           : "Gothic",
+  "grime"            : "Grime",
+  "grindcore"        : "Grindcore",
+  "grunge"           : "Grunge",
+  "hardcore"         : "Hardcore",
+  "hard rock"        : "Hard rock",
+  "metal"            : "Metal",
+  "hip hop/rap"      : "Hip hop/Rap",
+  "house"            : "House",
+  "indie"            : "Indie",
+  "industrial"       : "Industrial",
+  "instrumental"     : "Instrumental",
+  "jazz"             : "Jazz",
+  "jingle"           : "Jingle",
+  "krautrock"        : "Krautrock",
+  "latin"            : "Latin",
+  "lounge"           : "Lounge",
+  "mambo"            : "Mambo",
+  "math rock"        : "Math rock",
+  "minimal"          : "Minimal",
+  "new-wave"         : "New-wave",
+  "noise"            : "Noise",
+  "opera"            : "Opera",
+  "orchestra"        : "Orchestra",
+  "pop"              : "Pop",
+  "post-punk"        : "Post-punk",
+  "post-rock"        : "Post-rock",
+  "progressive"      : "Progressive",
+  "psychedelic"      : "Psychedelic",
+  "psy-trance"       : "Psy-trance",
+  "punk"             : "Punk",
+  "reggae"           : "Reggae",
+  "reggaeton"        : "Reggaeton",
+  "rock"             : "Rock",
+  "rock and roll"    : "Rock and roll",
+  "rockabilly"       : "Rockabilly",
+  "roots"            : "Roots",
+  "r&b"              : "RnB",
+  "shoegaze"         : "Shoegaze",
+  "ska"              : "Ska",
+  "singer-songwriter": "Singer-songwriter",
+  "soul"             : "Soul",
+  "space rock"       : "Space rock",
+  "stoner"           : "Stoner",
+  "surf"             : "Surf",
+  "swing"            : "Swing",
+  "synthpop"         : "Synthpop",
+  "synthwave"        : "Synthwave",
+  "techno"           : "Techno",
+  "tekno"            : "Tekno",
+  "thrash metal"     : "Thrash metal",
+  "trip hop"         : "Trip hop",
+  "underground"      : "Underground",
+  "world music"      : "World music"
+}
+
+
 function fetchJson(url) {
   return fetch(url).then((resp) => resp.json())
 }
@@ -139,6 +248,67 @@ class Gig extends Component {
 }
 
 
+class TagSelector extends Component {
+  constructor(props) {
+    super(props)
+    this.onChange = props.onChange
+    this.allItems = this.props.allItems || {}
+
+    this.state = {
+      items: this.props.items || [],
+      matches: []
+    }
+  }
+
+  render() {
+    const selected = this.state.items
+      .map((item) => [
+        <span className="label label-primary interactive"
+          onClick={(event) => {
+            const items = this.state.items.filter((x) => x !== item)
+            this.setState({items: items})
+            this.onChange(items)
+          }}>
+            {this.allItems[item]}
+        </span>,
+        " "
+      ])
+
+    const matches = this.state.matches
+      .filter((x) => this.state.items.indexOf(x) === -1)
+      .map((item) => [
+        <span
+          className="label label-default interactive"
+          onClick={(event) => {
+            const items = this.state.items.add(item)
+            this.setState({items: items})
+            this.onChange(items)
+          }}>
+            {this.allItems[item]}
+        </span>,
+        " "
+      ])
+
+    return (
+      <div className="tag-selector form-group">
+        <input className="form-control" type="text" placeholder={this.props.placeholder}
+          onChange={(event) => {
+            const needle = event.target.value
+            const matches = !needle
+              ? []
+              : Object.keys(this.allItems)
+                .filter((key) => this.allItems[key].toLowerCase().indexOf(needle) !== -1)
+                .sort((a, b) => a.length - b.length)
+
+              this.setState({matches: matches})
+          }} />
+        {selected} {matches}
+      </div>
+    )
+  }
+}
+
+
 class GigSearch extends Component {
   constructor(props) {
     super(props)
@@ -214,6 +384,17 @@ class GigSearch extends Component {
             className="form-control"
             placeholder="Search artist or venue"
             onChange={(event) => this.setState({query: event.target.value}) }/>
+        </div>
+
+        <div className="form-group tags">
+          <TagSelector
+            allItems={allTags}
+            items={this.state.tags}
+            placeholder="Search by tag"
+            onChange={(tags) => {
+              this.setState({tags: tags})
+              console.log(tags)
+            }} />
         </div>
 
         <div className="form-group submit">

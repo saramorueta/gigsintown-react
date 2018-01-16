@@ -2,6 +2,17 @@ html, body {
   height: 100%;
 }
 
+.interactive {
+  cursor: pointer;
+}
+
+.label-primary.interactive:hover {
+  background-color: #88A;
+}
+.label-default.interactive:hover {
+  background-color: #444;
+}
+
 #filters, #gig-listing {
   padding-top: 10px;
 }
