@@ -2,15 +2,8 @@ html, body {
   height: 100%;
 }
 
-.interactive {
-  cursor: pointer;
-}
-
-.label-primary.interactive:hover {
-  background-color: #88A;
-}
-.label-default.interactive:hover {
-  background-color: #444;
+.tag-selector .btn {
+  margin-top: 2px;
 }
 
 #filters, #gig-listing {

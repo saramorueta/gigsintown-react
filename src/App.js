@@ -263,14 +263,15 @@ class TagSelector extends Component {
   render() {
     const selected = this.state.items
       .map((item) => [
-        <span className="label label-primary interactive"
+        <button className="btn btn-primary"
+          key={"selected-" + item}
           onClick={(event) => {
             const items = this.state.items.filter((x) => x !== item)
             this.setState({items: items})
             this.onChange(items)
           }}>
             {this.allItems[item]}
-        </span>,
+        </button>,
         " "
       ])
 
@@ -278,7 +279,8 @@ class TagSelector extends Component {
       .filter((x) => this.state.items.indexOf(x) === -1)
       .map((item) => [
         <span
-          className="label label-default interactive"
+          key={"match-" + item}
+          className="btn btn-default interactive"
           onClick={(event) => {
             const items = this.state.items.add(item)
             this.setState({items: items})
@@ -391,10 +393,7 @@ class GigSearch extends Component {
             allItems={allTags}
             items={this.state.tags}
             placeholder="Search by tag"
-            onChange={(tags) => {
-              this.setState({tags: tags})
-              console.log(tags)
-            }} />
+            onChange={(tags) => this.setState({tags: tags})} />
         </div>
 
         <div className="form-group submit">
