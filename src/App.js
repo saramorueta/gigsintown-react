@@ -4,6 +4,11 @@ import './App.css';
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
+// import FacebookLogin from 'react-facebook-login';
+
+
+const backendBaseUrl = "https://gigsintown.herokuapp.com/"
+
 
 Array.prototype.add = function(element) {
   return this.indexOf(element) === -1
@@ -119,7 +124,7 @@ function fetchJson(url) {
 }
 
 function gigsApiUrl(location, startDate, endDate, query, tags) {
-  return "https://gigsintown.herokuapp.com/api/gigs?pageSize=20" +
+  return backendBaseUrl + "api/gigs?pageSize=20" +
     (location ? "&location=" + encodeURIComponent(location) : "") +
     (startDate ? "&startDate=" + startDate.format("YYYY-MM-DD") : "") +
     (endDate ? "&endDate=" + endDate.format("YYYY-MM-DD") : "") +
@@ -161,35 +166,12 @@ class Gig extends Component {
     }
 
     const venueAddress = this.props.venue.address && this.props.venue.coordinates
-      ? <a href={googleMapsUrl(this.props.venue)} target="blank">{this.props.venue.address}</a>
+      ? <a href={googleMapsUrl(this.props.venue)} target="blank"><i className="fa fa-map-marker"/> {this.props.venue.address}</a>
       : null
 
     return (
-      <address className="venue">
-        <h4>{this.props.venue.name}</h4>
-        {venueAddress}
-      </address>
+      <h4>{this.props.venue.name}</h4>
     )
-  }
-
-  renderPlayers() {
-    const hasPlayers = this.props.artists
-      .find(function(artist) { return artist.spotifyId })
-    
-    if (hasPlayers) {
-      if (this.state.displayPlayers) {
-        return this.props.artists
-          .filter(function(artist) { return artist.spotifyId })
-          .map(function(artist) {
-            return (<SpotifyPlayer key={artist.spotifyId} artistId={artist.spotifyId} artistName={artist.name} />)
-          })
-      }
-      else {
-        return (
-          <span className="btn btn-success" onClick={() => this.setState({displayPlayers: true})}>Listen on Spotify</span>
-        )
-      }
-    }
   }
 
   renderDate() {
@@ -223,8 +205,32 @@ class Gig extends Component {
 
     const tags = this.props.tags
       .map(function(tag) { return ([
-        <span className="label label-primary" key={tag}>{tag}</span>, " "
+        <span className="badge badge-secondary" key={tag}>{tag}</span>, " "
       ])})
+
+    function googleMapsUrl(venue) {
+        return "https://www.google.com/maps/place/" + encodeURIComponent(venue.name) +
+            "/@" + venue.coordinates.lat + "," + venue.coordinates.lng
+      }
+  
+    const showOnMap = this.props.venue.coordinates
+      ? <a target="blank" href={googleMapsUrl(this.props.venue)} className="btn btn-info" title={this.props.venue.address}>Show on map <i className="fa fa-map-marker"/></a>
+      : null
+
+    const spotifyIntegration = this.props.artists
+      .find(function(artist) { return artist.spotifyId })
+    
+    const listenOnSpotify = spotifyIntegration && !this.state.displaySpotifyPlayers
+      ? <span className="btn btn-success" onClick={() => this.setState({displaySpotifyPlayers: true})}><i className="fa fa-spotify"/> Listen on Spotify</span>
+      : null
+
+    const spotifyPlayers = this.state.displaySpotifyPlayers
+      ? this.props.artists
+        .filter(function(artist) { return artist.spotifyId })
+        .map(function(artist) {
+          return (<SpotifyPlayer key={artist.spotifyId} artistId={artist.spotifyId} artistName={artist.name} />)
+        })
+      : null
 
     // const images = this.props.artists
     //   .filter(function(artist) { return artist.imageUrl; })
@@ -239,9 +245,16 @@ class Gig extends Component {
           <div className="artists-names">{artists}</div>
         </h3>
         <div className="tags">{tags}</div>
-        {this.renderVenue()}
-        <div className="players">{this.renderPlayers()}</div>
-        <div className="external-link"><a target="blank" href={this.props.uri}>Find out more</a></div>
+        <address>
+          <h4>{this.props.venue.name}</h4>
+          {this.props.venue.address}
+        </address>
+        <div className="players">{listenOnSpotify}{spotifyPlayers}</div>
+        <div className="controls">
+          {showOnMap}
+          {" "}
+          <a target="blank" href={this.props.uri} className="btn btn-secondary">Find out more <i className="fa fa-external-link"/></a>
+        </div>
       </div>
     )
   }
@@ -280,7 +293,7 @@ class TagSelector extends Component {
       .map((item) => [
         <span
           key={"match-" + item}
-          className="btn btn-default interactive"
+          className="btn btn-light"
           onClick={(event) => {
             const items = this.state.items.add(item)
             this.setState({items: items})
@@ -331,7 +344,7 @@ class GigSearch extends Component {
 
     return (
       <div id="filters">
-        <div className="form-group calendars visible-xs">
+        <div className="form-group calendars d-block d-lg-none">
           <Calendar
             date={this.state.startDate}
             minDate={moment.utc()}
@@ -339,7 +352,7 @@ class GigSearch extends Component {
           />
         </div>
 
-        <div className="form-group calendars visible-sm visible-md">
+        <div className="form-group calendars d-none d-lg-block d-xl-none">
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
@@ -349,7 +362,7 @@ class GigSearch extends Component {
           />
         </div>
 
-        <div className="form-group calendars hidden-xs hidden-sm hidden-md">
+        <div className="form-group calendars d-none d-xl-block">
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
@@ -478,7 +491,8 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      apiUrl: null
+      apiUrl: null,
+      auth: null
     }
   }
 
@@ -487,11 +501,30 @@ class App extends Component {
       ? <GigListing onSearch={() => this.setState({apiUrl: null})} key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
       : <GigSearch key="search" onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
 
+    // const login = this.state.auth
+    //   ? <img src={this.state.auth.user.pictureUrl} />
+    //   : <FacebookLogin
+    //     appId="113460019464423"
+    //     fields="name,email,picture"
+    //     cssClass="btn-social btn btn-primary"
+    //     icon="fa-facebook"    
+    //     callback={(response) => {
+    //       fetch(backendBaseUrl + "user/auth/facebook", {
+    //         method: "POST",
+    //         body: JSON.stringify({
+    //           "token": response.accessToken
+    //         }),
+    //         headers: new Headers({
+    //           'Content-Type': 'application/json'
+    //         })
+    //       }).then((resp) => resp.json())
+    //       .then((auth) => this.setState({auth: auth}))
+    //     }} />
+
     return (
       <div className="container">
         <div className="row">
           <nav className="col col-md-4 hidden-sm hidden-xs">
-
           </nav>
           <main className="col col-12 col-md-8">
             {content}

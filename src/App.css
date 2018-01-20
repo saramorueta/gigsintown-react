@@ -1,5 +1,6 @@
 html, body {
   height: 100%;
+  background-color: #EEEEF0;
 }
 
 .tag-selector .btn {
@@ -8,6 +9,10 @@ html, body {
 
 #filters, #gig-listing {
   padding-top: 10px;
+}
+
+.btn-social i {
+  margin-right: 10px;
 }
 
 #gig-listing .back-to-search {
@@ -19,9 +24,13 @@ html, body {
 }
 
 .gig, .infinite-scroll {
-  background-color: #FEE;
+  background-color: #FFF;
   padding: 10px 20px 20px 20px;
   margin-bottom: 10px;
+}
+
+.gig address {
+  margin-top: 14px;
 }
 
 .infinite-scroll {
@@ -38,7 +47,7 @@ html, body {
   clear: both;
 }
 
-.gig .external-link {
+.gig .controls {
   border-top: 1px solid #CCC;
   padding-top: 10px;
   margin-top: 15px;
