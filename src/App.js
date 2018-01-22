@@ -4,7 +4,7 @@ import './App.css';
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
-// import FacebookLogin from 'react-facebook-login';
+import FacebookLogin from 'react-facebook-login';
 
 
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
@@ -239,8 +239,8 @@ class Gig extends Component {
     //   )})
 
     return (
-      <div className="gig">
-        {this.renderDate()}
+      <article className="gig">
+        <span className="badge badge-danger when">{this.renderDate()}</span>
         <h3>
           <div className="artists-names">{artists}</div>
         </h3>
@@ -255,7 +255,7 @@ class Gig extends Component {
           {" "}
           <a target="blank" href={this.props.uri} className="btn btn-secondary">Find out more <i className="fa fa-external-link"/></a>
         </div>
-      </div>
+      </article>
     )
   }
 }
@@ -327,13 +327,12 @@ class TagSelector extends Component {
 class GigSearch extends Component {
   constructor(props) {
     super(props)
-    this.onSearch = props.onSearch
     this.state = {
-      location: "london",
-      startDate: moment.utc(),
-      endDate: null,
-      query: null,
-      tags: []
+      location: props.location || "london",
+      startDate: props.startDate ||moment.utc(),
+      endDate: props.endDate || null,
+      query: props.query || null,
+      tags: props.tags || []
     }
   }
 
@@ -343,7 +342,7 @@ class GigSearch extends Component {
       : this.state.startDate.clone().add(1, "week")
 
     return (
-      <div id="filters">
+      <article id="filters">
         <div className="form-group calendars d-block d-lg-none">
           <Calendar
             date={this.state.startDate}
@@ -352,44 +351,13 @@ class GigSearch extends Component {
           />
         </div>
 
-        <div className="form-group calendars d-none d-lg-block d-xl-none">
+        <div className="form-group calendars d-none d-lg-block">
           <DateRange
             minDate={moment.utc()}
             startDate={this.state.startDate}
             endDate={endDateForRanges}
             linkedCalendars={true}
             onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
-          />
-        </div>
-
-        <div className="form-group calendars d-none d-xl-block">
-          <DateRange
-            minDate={moment.utc()}
-            startDate={this.state.startDate}
-            endDate={endDateForRanges}
-            linkedCalendars={true}
-            ranges={{
-              "Today": {
-                startDate: (now) => { return now },
-                endDate: (now) => { return now }
-              },
-              "Tomorrow": {
-                startDate: (now) => { return now.add(1, 'day') },
-                endDate: (now) => { return now.add(1, 'day') }
-              },
-              "This week": {
-                startDate: (now) => { return now },
-                endDate: (now) => { return now.add(1, 'week') }
-              },
-              "This month": {
-                startDate: (now) => { return now },
-                endDate: (now) => { return now.add(1, 'month') }
-              }
-            }}
-            onChange={ (range) => this.setState({startDate: range.startDate, endDate: range.endDate}) }
-            theme={{
-              PredefinedRanges : { marginLeft: 10, marginTop: 10 }
-            }}
           />
         </div>
 
@@ -410,16 +378,16 @@ class GigSearch extends Component {
         </div>
 
         <div className="form-group submit">
-          <button onClick={ (event) => this.onSearch(gigsApiUrl(
+          <button onClick={ (event) => this.props.onSearch(
               this.state.location,
               this.state.startDate,
               this.state.endDate,
               this.state.query,
               this.state.tags
-            ))
+            )
           } id="submit-search" className="btn btn-primary">Find gigs!</button>
         </div>
-      </div>
+      </article>
     )
   }
 }
@@ -431,7 +399,6 @@ class GigListing extends Component {
     this.state = {
       gigs: []
     }
-    this.onSearch = this.props.onSearch
     this.fetchNext = this.fetchNext.bind(this)
     this.appendResults = this.appendResults.bind(this)
     if (props.apiUrl) {
@@ -471,14 +438,14 @@ class GigListing extends Component {
   render() {
     return (
       <div id="gig-listing">
-        <button className="btn btn-dark back-to-search" onClick={this.onSearch}>
+        <button className="btn btn-dark back-to-search" onClick={this.props.onSearch}>
           Back to search
         </button>
         <InfiniteScroll
           next={this.fetchNext}
           hasMore={this.props.apiUrl && (this.state.apiResponse === undefined || this.state.apiResponse.nextPage)}
-          loader={<div className="infinite-scroll">Finding gigs...</div>}
-          endMessage={<div className="infinite-scroll">That's all, refine your search to find more gigs</div>}>
+          loader={<article>Finding gigs...</article>}
+          endMessage={<article>That's all, refine your search to find more gigs</article>}>
           {this.state.gigs}
         </InfiniteScroll>
       </div>
@@ -491,38 +458,78 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      location: null,
+      startDate: null,
+      endDate: null,
+      query: null,
+      tags: null,
       apiUrl: null,
       auth: null
     }
   }
 
   render() {
+    function loginForm() {
+      return <FacebookLogin
+        appId="113460019464423"
+        fields="name,email,picture"
+        cssClass="btn-social btn btn-facebook"
+        icon="fa-facebook"    
+        callback={(response) => {
+          fetch(backendBaseUrl + "user/auth/facebook", {
+            method: "POST",
+            body: JSON.stringify({
+              "token": response.accessToken
+            }),
+            headers: new Headers({
+              'Content-Type': 'application/json'
+            })
+          }).then((resp) => resp.json())
+          .then((auth) => this.setState({auth: auth}))
+        }} />
+    }
+
+    function userImage() {
+      return <img className="toggle-control" src={this.state.auth.user.pictureUrl} />
+    }
+
     const content = this.state.apiUrl
-      ? <GigListing onSearch={() => this.setState({apiUrl: null})} key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
-      : <GigSearch key="search" onSearch={(apiUrl) => this.setState({apiUrl: apiUrl})} />
+      ? <GigListing
+          onSearch={() => this.setState({apiUrl: null})} key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
+      : <GigSearch
+          key="search"
+          onSearch={(location, startDate, endDate, query, tags) => 
+            this.setState({
+              location: location,
+              startDate: startDate,
+              endDate: endDate,
+              query: query,
+              tags: tags,
+              apiUrl: gigsApiUrl(location, startDate, endDate, query, tags)
+            })
+          }
+          location={this.state.location}
+          startDate={this.state.startDate}
+          endDate={this.state.endDate}
+          query={this.state.query}
+          tags={this.state.tags} />
 
-    // const login = this.state.auth
-    //   ? <img src={this.state.auth.user.pictureUrl} />
-    //   : <FacebookLogin
-    //     appId="113460019464423"
-    //     fields="name,email,picture"
-    //     cssClass="btn-social btn btn-primary"
-    //     icon="fa-facebook"    
-    //     callback={(response) => {
-    //       fetch(backendBaseUrl + "user/auth/facebook", {
-    //         method: "POST",
-    //         body: JSON.stringify({
-    //           "token": response.accessToken
-    //         }),
-    //         headers: new Headers({
-    //           'Content-Type': 'application/json'
-    //         })
-    //       }).then((resp) => resp.json())
-    //       .then((auth) => this.setState({auth: auth}))
-    //     }} />
+    const navBarContent = null
+    // const navBarContent = this.state.auth
+    //   ? userImage.bind(this)()
+    //   : loginForm.bind(this)()
 
-    return (
-      <div className="container">
+    return ([
+      <header>
+        <nav className="navbar navbar-dark fixed-top" id="header">
+          <div className="container">
+            <a className="navbar-brand" href="#">Gigme.IN</a>
+            {navBarContent}
+          </div>
+        </nav>
+      </header>
+    ,
+    <div className="container">
         <div className="row">
           <nav className="col col-md-4 hidden-sm hidden-xs">
           </nav>
@@ -531,7 +538,7 @@ class App extends Component {
           </main>
         </div>
       </div>
-    )
+    ])
   }
 }
 
