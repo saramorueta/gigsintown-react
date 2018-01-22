@@ -7,6 +7,7 @@ import {Calendar, DateRange} from 'react-date-range';
 // import FacebookLogin from 'react-facebook-login';
 
 
+// const backendBaseUrl = "http://localhost:5000/"
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
 
 
@@ -402,10 +403,6 @@ class GigListing extends Component {
     }
     this.fetchNext = this.fetchNext.bind(this)
     this.appendResults = this.appendResults.bind(this)
-    if (props.apiUrl) {
-      fetchJson(props.apiUrl)
-        .then(this.appendResults)
-    }
   }
 
   appendResults(apiResponse) {
@@ -428,7 +425,10 @@ class GigListing extends Component {
   fetchNext() {
     if (!this.state.loading) {
       this.setState({ loading: true })
-      fetchJson(this.state.apiResponse.nextPage)
+      const url = this.state.apiResponse
+        ? this.state.apiResponse.nextPage
+        : this.props.apiUrl
+      fetchJson(url)
         .then(this.appendResults)
         .then(() => {
           this.setState({ loading: false })
@@ -444,7 +444,7 @@ class GigListing extends Component {
         </button>
         <InfiniteScroll
           next={this.fetchNext}
-          hasMore={this.props.apiUrl && (this.state.apiResponse === undefined || this.state.apiResponse.nextPage)}
+          hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
           loader={<article>Finding gigs...</article>}
           endMessage={<article>That's all, refine your search to find more gigs</article>}>
           {this.state.gigs}
