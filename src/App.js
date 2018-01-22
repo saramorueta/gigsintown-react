@@ -4,7 +4,7 @@ import './App.css';
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
-import FacebookLogin from 'react-facebook-login';
+// import FacebookLogin from 'react-facebook-login';
 
 
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
@@ -15,6 +15,7 @@ Array.prototype.add = function(element) {
     ? [].concat(this, [element])
     : this
 };
+
 
 const allTags = {
   "2-step"           : "2-step",
@@ -470,23 +471,23 @@ class App extends Component {
 
   render() {
     function loginForm() {
-      return <FacebookLogin
-        appId="113460019464423"
-        fields="name,email,picture"
-        cssClass="btn-social btn btn-facebook"
-        icon="fa-facebook"    
-        callback={(response) => {
-          fetch(backendBaseUrl + "user/auth/facebook", {
-            method: "POST",
-            body: JSON.stringify({
-              "token": response.accessToken
-            }),
-            headers: new Headers({
-              'Content-Type': 'application/json'
-            })
-          }).then((resp) => resp.json())
-          .then((auth) => this.setState({auth: auth}))
-        }} />
+      // return <FacebookLogin
+      //   appId="113460019464423"
+      //   fields="name,email,picture"
+      //   cssClass="btn-social btn btn-facebook"
+      //   icon="fa-facebook"    
+      //   callback={(response) => {
+      //     fetch(backendBaseUrl + "user/auth/facebook", {
+      //       method: "POST",
+      //       body: JSON.stringify({
+      //         "token": response.accessToken
+      //       }),
+      //       headers: new Headers({
+      //         'Content-Type': 'application/json'
+      //       })
+      //     }).then((resp) => resp.json())
+      //     .then((auth) => this.setState({auth: auth}))
+      //   }} />
     }
 
     function userImage() {
