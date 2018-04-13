@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
+import Gig from './GigComponent.js';
 
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
 
 
-// const backendBaseUrl = "http://localhost:5000/"
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
 
 
@@ -134,134 +134,6 @@ function gigsApiUrl(location, startDate, endDate, query, tags) {
 }
 
 
-class SpotifyPlayer extends Component {
-  render() {
-    const iframeUrl = "https://open.spotify.com/embed?uri=spotify:artist:" + encodeURIComponent(this.props.artistId) + "&theme=white"
-    const iframeTitle = "Spotify player for " + this.props.artistName
-    return (
-      <div className="player">
-        <iframe src={iframeUrl} 
-          width="300"
-          height="80"
-          frameBorder="0"
-          allowtransparency="true"
-          title={iframeTitle} />
-      </div>
-    )
-  }
-}
-
-
-class Gig extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      displayPlayers: false
-    }
-  }
-
-  renderVenue() {
-    const googleMapsUrl = function(venue) {
-      return "https://www.google.com/maps/place/" + encodeURIComponent(venue.name) +
-        "/@" + venue.coordinates.lat + "," + venue.coordinates.lng
-    }
-
-    const venueAddress = this.props.venue.address && this.props.venue.coordinates
-      ? <a href={googleMapsUrl(this.props.venue)} target="blank"><i className="fa fa-map-marker"/> {this.props.venue.address}</a>
-      : null
-
-    return (
-      <h4>{this.props.venue.name}</h4>
-    )
-  }
-
-  renderDate() {
-    const date = moment(this.props.date, "YYYY-MM-DD")
-    const diff = date.diff(moment.utc().startOf("day"))
-
-    const oneDay = 86400000
-    const oneWeek = oneDay * 7
-
-    if (diff === -oneDay) {
-      return "Yesterday"
-    }
-    else if (diff === 0) {
-      return "Today"
-    }
-    else if (diff === oneDay) {
-      return "Tomorrow"
-    }
-    else if (diff > oneDay && diff < oneWeek) {
-      return date.format("dddd")
-    }
-    else {
-      return date.format("DD/MM/YYYY")
-    }
-  }
-
-  render() {
-    const artists = this.props.artists
-      .map(function(artist) { return artist.name })
-      .join(", ")
-
-    const tags = this.props.tags
-      .map(function(tag) { return ([
-        <span className="badge badge-secondary" key={tag}>{tag}</span>, " "
-      ])})
-
-    function googleMapsUrl(venue) {
-        return "https://www.google.com/maps/place/" + encodeURIComponent(venue.name) +
-            "/@" + venue.coordinates.lat + "," + venue.coordinates.lng
-      }
-  
-    const showOnMap = this.props.venue.coordinates
-      ? <a target="blank" href={googleMapsUrl(this.props.venue)} className="btn btn-info" title={this.props.venue.address}>Show on map <i className="fa fa-map-marker"/></a>
-      : null
-
-    const spotifyIntegration = this.props.artists
-      .find(function(artist) { return artist.spotifyId })
-    
-    const listenOnSpotify = spotifyIntegration && !this.state.displaySpotifyPlayers
-      ? <span className="btn btn-success" onClick={() => this.setState({displaySpotifyPlayers: true})}><i className="fa fa-spotify"/> Listen on Spotify</span>
-      : null
-
-    const spotifyPlayers = this.state.displaySpotifyPlayers
-      ? this.props.artists
-        .filter(function(artist) { return artist.spotifyId })
-        .map(function(artist) {
-          return (<SpotifyPlayer key={artist.spotifyId} artistId={artist.spotifyId} artistName={artist.name} />)
-        })
-      : null
-
-    // const images = this.props.artists
-    //   .filter(function(artist) { return artist.imageUrl; })
-    //   .map(function(artist) { return (
-    //     <img src={artist.imageUrl} alt={artist.name} className="img-circle"/>
-    //   )})
-
-    return (
-      <article className="gig">
-        <span className="badge badge-danger when">{this.renderDate()}</span>
-        <h3>
-          <div className="artists-names">{artists}</div>
-        </h3>
-        <div className="tags">{tags}</div>
-        <address>
-          <h4>{this.props.venue.name}</h4>
-          {this.props.venue.address}
-        </address>
-        <div className="players">{listenOnSpotify}{spotifyPlayers}</div>
-        <div className="controls">
-          {showOnMap}
-          {" "}
-          <a target="blank" href={this.props.uri} className="btn btn-secondary">Find out more <i className="fa fa-external-link"/></a>
-        </div>
-      </article>
-    )
-  }
-}
-
-
 class TagSelector extends Component {
   constructor(props) {
     super(props)
@@ -309,7 +181,7 @@ class TagSelector extends Component {
       <div className="tag-selector form-group">
         <input className="form-control" type="text" placeholder={this.props.placeholder}
           onChange={(event) => {
-            const needle = event.target.value
+            const needle = event.target.value.toLowerCase()
             const matches = !needle
               ? []
               : Object.keys(this.allItems)
@@ -402,6 +274,10 @@ class GigListing extends Component {
     }
     this.fetchNext = this.fetchNext.bind(this)
     this.appendResults = this.appendResults.bind(this)
+    if (props.apiUrl) {
+      fetchJson(props.apiUrl)
+        .then(this.appendResults)
+    }
   }
 
   appendResults(apiResponse) {
@@ -422,12 +298,9 @@ class GigListing extends Component {
   }
 
   fetchNext() {
-    if (!this.state.loading) {
+    if (!this.state.loading && this.state.apiResponse) {
       this.setState({ loading: true })
-      const url = this.state.apiResponse
-        ? this.state.apiResponse.nextPage
-        : this.props.apiUrl
-      fetchJson(url)
+      fetchJson(this.state.apiResponse.nextPage)
         .then(this.appendResults)
         .then(() => {
           this.setState({ loading: false })
@@ -443,7 +316,7 @@ class GigListing extends Component {
         </button>
         <InfiniteScroll
           next={this.fetchNext}
-          hasMore={!this.state.apiResponse || this.state.apiResponse.nextPage}
+          hasMore={!this.state.apiResponse || (this.state.apiResponse && this.state.apiResponse.nextPage)}
           loader={<article>Finding gigs...</article>}
           endMessage={<article>That's all, refine your search to find more gigs</article>}>
           {this.state.gigs}
@@ -463,20 +336,11 @@ class App extends Component {
       endDate: null,
       query: null,
       tags: null,
-      apiUrl: null,
-      auth: null
+      apiUrl: null
     }
   }
 
   render() {
-    function loginForm() {
-
-    }
-
-    function userImage() {
-      return <img className="toggle-control" src={this.state.auth.user.pictureUrl} />
-    }
-
     const content = this.state.apiUrl
       ? <GigListing
           onSearch={() => this.setState({apiUrl: null})} key={this.state.apiUrl} apiUrl={this.state.apiUrl}/>
@@ -498,22 +362,16 @@ class App extends Component {
           query={this.state.query}
           tags={this.state.tags} />
 
-    const navBarContent = null
-    // const navBarContent = this.state.auth
-    //   ? userImage.bind(this)()
-    //   : loginForm.bind(this)()
-
     return ([
       <header>
         <nav className="navbar navbar-dark fixed-top" id="header">
           <div className="container">
             <a className="navbar-brand" href="#">Gigme.IN</a>
-            {navBarContent}
           </div>
         </nav>
       </header>
-    ,
-    <div className="container">
+      ,
+      <div className="container">
         <div className="row">
           <nav className="col col-md-4 hidden-sm hidden-xs">
           </nav>
