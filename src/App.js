@@ -5,6 +5,7 @@ import Gig from './GigComponent.js';
 import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
+import FacebookLoginButton from './FacebookLoginButton';
 
 
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
@@ -367,6 +368,7 @@ class App extends Component {
         <nav className="navbar navbar-dark fixed-top" id="header">
           <div className="container">
             <a className="navbar-brand" href="#">Gigme.IN</a>
+            <FacebookLoginButton />
           </div>
         </nav>
       </header>
