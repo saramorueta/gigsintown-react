@@ -6,6 +6,7 @@ import moment from 'moment';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
 import FacebookLoginButton from './FacebookLoginButton';
+import Avatar from './Avatar';
 
 
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
@@ -363,12 +364,21 @@ class App extends Component {
           query={this.state.query}
           tags={this.state.tags} />
 
+    const facebook = this.state.facebook
+      ? <Avatar internalToken={this.state.facebook.internalToken} />
+      : <FacebookLoginButton
+            onSuccess={ data => {
+              this.setState({ facebook: {
+                internalToken: data.token
+              }});
+            }}/>;
+
     return ([
       <header>
         <nav className="navbar navbar-dark fixed-top" id="header">
           <div className="container">
             <a className="navbar-brand" href="#">Gigme.IN</a>
-            <FacebookLoginButton />
+              {facebook}
           </div>
         </nav>
       </header>

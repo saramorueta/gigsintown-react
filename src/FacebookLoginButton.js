@@ -1,6 +1,10 @@
 import React from 'react';
 
 class FacebookLoginButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onSuccess = this.props.onSuccess.bind(this);
+    }
 
     componentDidMount() {
         if (window.FB) {
@@ -17,6 +21,7 @@ class FacebookLoginButton extends React.Component {
 
     getGigMeAuthToken(FBToken) {
         console.log(FBToken)
+        var onSuccess = this.onSuccess;
         fetch('https://gigsintown.herokuapp.com/user/auth/facebook', {
             method: 'post',
             headers: {
@@ -24,21 +29,20 @@ class FacebookLoginButton extends React.Component {
             },
             body: JSON.stringify({ token: FBToken })
         })
-        .then(function (data) {
-            console.log('Request succeeded with JSON response', data);
+        .then(function (a) {
+            return a.json(); // call the json method on the response to get JSON
         })
-        .catch(function (error) {
-            console.log('Request failed', error);
-        });
+        .then(function (json) {
+            console.log('Request succeeded with JSON response', json);
+            onSuccess(json);
+        })
     }
 
     onLogin(response) {
         if (response.authResponse) {
             console.log('Welcome!  Fetching your information.... ');
-
             const FBToken = response.authResponse.accessToken;
-            this.getGigMeAuthToken(FBToken);
-
+            this.getGigMeAuthToken.call(this, FBToken);
         } else {
             console.log('User cancelled login or did not fully authorize.');
         }
@@ -49,8 +53,7 @@ class FacebookLoginButton extends React.Component {
             console.log('Logged in.');
 
             if (response.authResponse) {
-                const FBToken = response.authResponse.accessToken;
-                this.getGigMeAuthToken(FBToken);
+                this.onLogin(response);
             }
 
         } else {
