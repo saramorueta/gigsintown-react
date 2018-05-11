@@ -20,20 +20,14 @@ class FacebookLoginButton extends React.Component {
         }
     }
 
-    onLoginStatus(response) {
-        const FacebookStatus = new FacebookStatusStrategy(response.status);
-        FacebookStatus.ContextInterface(this.onSuccess);
+    onLoginStatus(loginInfo) {
+        const onSuccess = this.onSuccess;
+        const FacebookStatus = new FacebookStatusStrategy({
+            loginInfo,
+            onSuccess
+        });
 
-        // if (response.status === 'connected') {
-        //     console.log('Logged in.');
-        //
-        //     if (response.authResponse) {
-        //         this.onLogin(response);
-        //     }
-        //
-        // } else {
-        //     window.FB.login(this.onLogin.bind(this), {scope: 'email'});
-        // }
+        FacebookStatus.contextInterface();
     }
 
     loginFacebook(e) {

@@ -1,24 +1,38 @@
 class FacebookStatusStrategy {
-    constructor(type) {
-        switch (type) {
+    constructor({
+        loginInfo = {},
+        onSuccess = () => {}
+    }) {
+        this.setStrategy({loginInfo, onSuccess});
+    }
+
+    contextInterface() {
+        this.strategy.AlgorithmInterface();
+    }
+
+    setStrategy({loginInfo, onSuccess}) {
+        const status = loginInfo.status;
+        let strategy = null;
+
+        switch (status) {
             case "connected":
-                this.strategy = new Connected();
+                strategy = Connected;
                 break;
             case "not_authorized":
-                this.strategy = new NotAuthorized();
+                strategy = NotAuthorized;
                 break;
             default:
-                this.strategy = new Unknown();
+                strategy = Unknown;
         }
-    }
-    ContextInterface(callback) {
-        this.strategy.AlgorithmInterface();
-        this.strategy.onSuccess = callback; // can I do this differently? events?
+
+        this.strategy = new strategy({loginInfo, onSuccess});
     }
 }
 
 class Strategy {
-    constructor() {
+    constructor({loginInfo, onSuccess}) {
+        this.loginInfo = loginInfo;
+        this.onSuccess = onSuccess;
     }
 
     AlgorithmInterface() {
@@ -52,8 +66,10 @@ class Strategy {
 }
 
 class Connected extends Strategy {
-    constructor() {
-        super();
+    constructor({loginInfo, onSuccess}) {
+        super({loginInfo, onSuccess});
+        this.name = 'Connected';
+
         console.log('Connected created')
     }
 
@@ -63,14 +79,15 @@ class Connected extends Strategy {
         // the user's ID, a valid access token, a signed
         // request, and the time the access token
         // and signed request each expire
-
-
+        const loginInfo = this.loginInfo;
+        this.onAuthenticated(loginInfo);
     }
 }
 
 class NotAuthorized extends Strategy {
-    constructor() {
-        super();
+    constructor({loginInfo, onSuccess}) {
+        super({loginInfo, onSuccess});
+        this.name = "NotAuthorized";
         console.log('NotAuthorized created')
     }
 
@@ -81,8 +98,9 @@ class NotAuthorized extends Strategy {
 }
 
 class Unknown extends Strategy {
-    constructor() {
-        super();
+    constructor({loginInfo, onSuccess}) {
+        super({loginInfo, onSuccess});
+        this.name = 'Unknown';
         console.log('Unknown created')
     }
 
