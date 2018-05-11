@@ -1,5 +1,6 @@
 import React from 'react';
-import FacebookStatusStrategy from './FacebookStatusStrategy';
+
+import FacebookStatus from './FacebookStatus';
 
 class FacebookLoginButton extends React.Component {
     constructor(props) {
@@ -21,13 +22,14 @@ class FacebookLoginButton extends React.Component {
     }
 
     onLoginStatus(loginInfo) {
+        debugger;
         const onSuccess = this.onSuccess;
-        const FacebookStatus = new FacebookStatusStrategy({
+        const Facebook = new FacebookStatus({
             loginInfo,
             onSuccess
         });
 
-        FacebookStatus.contextInterface();
+        Facebook.contextInterface();
     }
 
     loginFacebook(e) {

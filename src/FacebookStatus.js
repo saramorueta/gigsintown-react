@@ -1,8 +1,11 @@
-class FacebookStatusStrategy {
+import Gigme from './Gigme';
+
+class FacebookStatus {
     constructor({
         loginInfo = {},
         onSuccess = () => {}
     }) {
+        debugger;
         this.setStrategy({loginInfo, onSuccess});
     }
 
@@ -29,43 +32,24 @@ class FacebookStatusStrategy {
     }
 }
 
-class Strategy {
+class FacebookStrategy {
     constructor({loginInfo, onSuccess}) {
         this.loginInfo = loginInfo;
         this.onSuccess = onSuccess;
     }
 
-    AlgorithmInterface() {
-    }
+    // implemented for each particular strategy
+    AlgorithmInterface() {}
 
     onAuthenticated(response) {
         console.log('Welcome!  Fetching your information.... ');
         const FBToken = response.authResponse.accessToken;
-        this.getGigMeAuthToken.call(this, FBToken); // verify inside here if token is valid
-    }
-
-    // move this out
-    getGigMeAuthToken(FBToken) {
-        var onSuccess = this.onSuccess;
-
-        fetch('https://gigsintown.herokuapp.com/user/auth/facebook', {
-            method: 'post',
-            headers: {
-                "Content-type": "application/json"
-            },
-            body: JSON.stringify({ token: FBToken })
-        })
-            .then(function (a) {
-                return a.json(); // call the json method on the response to get JSON
-            })
-            .then(function (json) {
-                console.log('Request succeeded with JSON response', json);
-                onSuccess(json);
-            })
+        const onSuccess = this.onSuccess;
+        Gigme.getGigMeAuthToken.call(this, {FBToken, onSuccess});
     }
 }
 
-class Connected extends Strategy {
+class Connected extends FacebookStrategy {
     constructor({loginInfo, onSuccess}) {
         super({loginInfo, onSuccess});
         this.name = 'Connected';
@@ -84,7 +68,7 @@ class Connected extends Strategy {
     }
 }
 
-class NotAuthorized extends Strategy {
+class NotAuthorized extends FacebookStrategy {
     constructor({loginInfo, onSuccess}) {
         super({loginInfo, onSuccess});
         this.name = "NotAuthorized";
@@ -97,7 +81,7 @@ class NotAuthorized extends Strategy {
     }
 }
 
-class Unknown extends Strategy {
+class Unknown extends FacebookStrategy {
     constructor({loginInfo, onSuccess}) {
         super({loginInfo, onSuccess});
         this.name = 'Unknown';
@@ -110,4 +94,4 @@ class Unknown extends Strategy {
     }
 }
 
-export default FacebookStatusStrategy;
+export default FacebookStatus;
