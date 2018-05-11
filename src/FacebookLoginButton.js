@@ -22,7 +22,6 @@ class FacebookLoginButton extends React.Component {
     }
 
     onLoginStatus(loginInfo) {
-        debugger;
         const onSuccess = this.onSuccess;
         const Facebook = new FacebookStatus({
             loginInfo,

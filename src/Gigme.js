@@ -1,17 +1,9 @@
 
 function getGigMeAuthToken({
-    FBToken = null,
-    onSuccess = () => {}
+    FBToken = null
 }) {
 
-    var callback = onSuccess;
-
-    if (FBToken == null) {
-        // call onError
-        return false;
-    }
-
-    fetch('https://gigsintown.herokuapp.com/user/auth/facebook', {
+    return fetch('https://gigsintown.herokuapp.com/user/auth/facebook', {
         method: 'post',
         headers: {
             "Content-type": "application/json"
@@ -21,11 +13,23 @@ function getGigMeAuthToken({
         .then(function (a) {
             return a.json(); // call the json method on the response to get JSON
         })
-        .then(function (json) {
-            debugger;
-            console.log('Request succeeded with JSON response', json);
-            callback(json);
+}
+
+
+function getUserInfo(internalToken) {
+    return fetch('https://gigsintown.herokuapp.com/user/info', {
+        method: 'get',
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": `bearer ${internalToken}`
+        }
+    })
+        .then(function (a) {
+            return a.json(); // call the json method on the response to get JSON
         })
 }
 
-export default {getGigMeAuthToken};
+export default {
+    getGigMeAuthToken,
+    getUserInfo
+};

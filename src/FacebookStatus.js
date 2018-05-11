@@ -1,11 +1,8 @@
-import Gigme from './Gigme';
-
 class FacebookStatus {
     constructor({
         loginInfo = {},
         onSuccess = () => {}
     }) {
-        debugger;
         this.setStrategy({loginInfo, onSuccess});
     }
 
@@ -44,8 +41,7 @@ class FacebookStrategy {
     onAuthenticated(response) {
         console.log('Welcome!  Fetching your information.... ');
         const FBToken = response.authResponse.accessToken;
-        const onSuccess = this.onSuccess;
-        Gigme.getGigMeAuthToken.call(this, {FBToken, onSuccess});
+        this.onSuccess(FBToken);
     }
 }
 

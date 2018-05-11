@@ -1,4 +1,5 @@
 import React from 'react';
+import Gigme from './Gigme';
 
 class Avatar extends React.Component {
     constructor(props) {
@@ -10,7 +11,8 @@ class Avatar extends React.Component {
     }
 
     componentWillMount(){
-        this.getUserInfo().then(userInfo => {
+        const internalToken = this.state.internalToken; // get that value from some model
+        Gigme.getUserInfo(internalToken).then(userInfo => {
             this.setState({
                 userInfo: {
                     pictureUrl: userInfo.pictureUrl,
@@ -20,19 +22,6 @@ class Avatar extends React.Component {
 
             this.setState({loaded: true});
         });
-    }
- 
-    getUserInfo() {
-        return fetch('https://gigsintown.herokuapp.com/user/info', {
-            method: 'get',
-            headers: {
-                "Content-type": "application/json",
-                "Authorization": `bearer ${this.state.internalToken}`
-            }
-        })
-        .then(function (a) {
-            return a.json(); // call the json method on the response to get JSON
-        })
     }
 
     render() {

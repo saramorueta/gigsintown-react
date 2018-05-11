@@ -7,7 +7,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import {Calendar, DateRange} from 'react-date-range';
 import FacebookLoginButton from './FacebookLoginButton';
 import Avatar from './Avatar';
-
+import Gigme from './Gigme';
 
 const backendBaseUrl = "https://gigsintown.herokuapp.com/"
 
@@ -367,10 +367,12 @@ class App extends Component {
     const facebook = this.state.facebook
       ? <Avatar internalToken={this.state.facebook.internalToken} />
       : <FacebookLoginButton
-            onSuccess={ data => {
-              this.setState({ facebook: {
-                internalToken: data.token
-              }});
+            onSuccess={ FBToken => {
+              Gigme.getGigMeAuthToken(FBToken).then(data => {
+                  this.setState({ facebook: {
+                      internalToken: data.token
+                  }});
+              });
             }}/>;
 
     return ([
