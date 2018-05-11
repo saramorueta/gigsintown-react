@@ -365,14 +365,21 @@ class App extends Component {
           tags={this.state.tags} />
 
     const facebook = this.state.facebook
-      ? <Avatar internalToken={this.state.facebook.internalToken} />
+      ? <Avatar url={this.state.facebook.image.url} alt={this.state.facebook.image.alt} />
       : <FacebookLoginButton
             onSuccess={ FBToken => {
-              Gigme.getGigMeAuthToken(FBToken).then(data => {
-                  this.setState({ facebook: {
-                      internalToken: data.token
-                  }});
-              });
+              Gigme.getGigMeAuthToken(FBToken)
+                  .then(gigMeToken => Gigme.getUserInfo(gigMeToken))
+                  .then(userInfo => {
+                    this.setState({
+                        facebook: {
+                            image: {
+                                url: userInfo.pictureUrl,
+                                alt: userInfo.firstName
+                            }
+                        }
+                    });
+                  });
             }}/>;
 
     return ([

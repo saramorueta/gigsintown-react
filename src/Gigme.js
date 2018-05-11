@@ -1,8 +1,5 @@
 
-function getGigMeAuthToken({
-    FBToken = null
-}) {
-
+function getGigMeAuthToken(FBToken = null) {
     return fetch('https://gigsintown.herokuapp.com/user/auth/facebook', {
         method: 'post',
         headers: {
@@ -12,6 +9,9 @@ function getGigMeAuthToken({
     })
         .then(function (a) {
             return a.json(); // call the json method on the response to get JSON
+        })
+        .then(function (json) {
+            return json.token;
         })
 }
 
